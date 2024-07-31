@@ -19,19 +19,19 @@ func NewPreferencesService(client *api.Client) *PreferencesService {
 }
 
 // GetPreferences retrieves preferences data from FlixPatrol API based on provided parameters
-func (s *PreferencesService) GetPreferences(params url.Values) ([]models.PreferencesResponse, error) {
+func (s *PreferencesService) GetPreferences(params url.Values) (*models.PreferencesResponse, error) {
 	endpoint, err := s.buildPreferencesURL(params)
 	if err != nil {
 		return nil, fmt.Errorf("building URL: %w", err)
 	}
 
-	var preferences []models.PreferencesResponse
+	var preferences models.PreferencesResponse
 	err = s.client.Get(endpoint, &preferences)
 	if err != nil {
 		return nil, fmt.Errorf("getting preferences data: %w", err)
 	}
 
-	return preferences, nil
+	return &preferences, nil
 }
 
 // buildPreferencesURL constructs the URL for the preferences endpoint

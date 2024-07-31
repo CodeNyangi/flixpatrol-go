@@ -1,12 +1,15 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 
 	"github.com/popeyeGOEL/flixpatrol-go/internal/api"
 	"github.com/popeyeGOEL/flixpatrol-go/internal/config"
+	"github.com/popeyeGOEL/flixpatrol-go/internal/models"
 	"github.com/popeyeGOEL/flixpatrol-go/pkg/flixpatrol"
 )
 
@@ -28,43 +31,33 @@ func run() error {
 
 	// Initialize services
 	dataService := flixpatrol.NewDataService(client)
-	demographicsService := flixpatrol.NewDemographicsService(client)
 	preferencesService := flixpatrol.NewPreferencesService(client)
-	searchService := flixpatrol.NewSearchService(client)
-	titleService := flixpatrol.NewTitleService(client)
-	trendingService := flixpatrol.NewTrendingService(client)
 
 	// Example: Get data
 	dataParams := url.Values{
 		"set":       {"4"},
 		"streaming": {"656"},
 		"region":    {"4672"},
-		"date":      {"2020"},
+		"date":      {"2024"},
 		"type":      {"1"},
 	}
-	data, err := dataService.GetData(dataParams)
+	dataResponse, err := dataService.GetData(dataParams)
 	if err != nil {
 		return fmt.Errorf("getting data: %w", err)
 	}
-	fmt.Printf("Data: %+v\n", data)
+	fmt.Printf("Data: %+v\n", dataResponse)
 
-	// Example: Get demographics
-	demographicsParams := url.Values{
-		"region": {"4672"},
-		"date":   {"2020"},
+	// Write data to CSV
+	if err := writeDataToCSV("data.csv", dataResponse.List); err != nil {
+		return fmt.Errorf("writing data to CSV: %w", err)
 	}
-	demographics, err := demographicsService.GetDemographics(demographicsParams)
-	if err != nil {
-		return fmt.Errorf("getting demographics: %w", err)
-	}
-	fmt.Printf("Demographics: %+v\n", demographics)
 
 	// Example: Get preferences
 	preferencesParams := url.Values{
-		"set":       {"33"},
+		"set":       {"1"},
 		"streaming": {"656"},
 		"region":    {"4672"},
-		"date":      {"2020-10"},
+		"date":      {"2024"},
 	}
 	preferences, err := preferencesService.GetPreferences(preferencesParams)
 	if err != nil {
@@ -72,36 +65,94 @@ func run() error {
 	}
 	fmt.Printf("Preferences: %+v\n", preferences)
 
-	// Example: Search
-	searchResults, err := searchService.Search("star wars", 1)
-	if err != nil {
-		return fmt.Errorf("searching: %w", err)
+	// Write preferences to CSV
+	if err := writePreferencesToCSV("preferences.csv", preferences); err != nil {
+		return fmt.Errorf("writing preferences to CSV: %w", err)
 	}
-	fmt.Printf("Search Results: %+v\n", searchResults)
 
-	// Example: Get title
-	titleOpts := &flixpatrol.TitleOptions{
-		Set:       1,
-		Streaming: 656,
-		Region:    0,
-		Date:      "2020-07-24",
-	}
-	title, err := titleService.GetTitle(89624, titleOpts)
-	if err != nil {
-		return fmt.Errorf("getting title: %w", err)
-	}
-	fmt.Printf("Title: %+v\n", title)
+	return nil
+}
 
-	// Example: Get trending
-	trendingOpts := &flixpatrol.TrendingOptions{
-		Region: 4672,
-		Date:   "2021-03",
-	}
-	trending, err := trendingService.GetTrending(trendingOpts)
+func writeDataToCSV(filename string, data []models.DataResponse) error {
+	file, err := os.Create(filename)
 	if err != nil {
-		return fmt.Errorf("getting trending: %w", err)
+		return fmt.Errorf("creating CSV file: %w", err)
 	}
-	fmt.Printf("Trending: %+v\n", trending)
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	// Write header
+	header := []string{"Result", "ID", "Name", "URL", "Premiere", "TypeID", "Type", "CountryID", "Country", "CompanyID", "Company", "Key", "Note", "Region", "Ranking", "RankingLast", "Value", "ValueLast", "ValueTotal", "Countries", "Days"}
+	if err := writer.Write(header); err != nil {
+		return fmt.Errorf("writing header to CSV: %w", err)
+	}
+
+	// Write data
+	for _, item := range data {
+		record := []string{
+			fmt.Sprint(item.Result),
+			fmt.Sprint(item.ID),
+			item.Name,
+			item.URL,
+			item.Premiere,
+			fmt.Sprint(item.TypeID),
+			item.Type,
+			fmt.Sprint(item.CountryID),
+			item.Country,
+			fmt.Sprint(item.CompanyID),
+			item.Company,
+			item.Key,
+			item.Note,
+			fmt.Sprint(item.Region),
+			fmt.Sprint(item.Ranking),
+			fmt.Sprint(item.RankingLast),
+			fmt.Sprint(item.Value),
+			fmt.Sprint(item.ValueLast),
+			fmt.Sprint(item.ValueTotal),
+			fmt.Sprint(item.Countries),
+			fmt.Sprint(item.Days),
+		}
+		if err := writer.Write(record); err != nil {
+			return fmt.Errorf("writing record to CSV: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func writePreferencesToCSV(filename string, preferences *models.PreferencesResponse) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return fmt.Errorf("creating CSV file: %w", err)
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	// Write header
+	header := []string{"Result", "ID", "Name", "GID", "Group", "Value", "Share"}
+	if err := writer.Write(header); err != nil {
+		return fmt.Errorf("writing header to CSV: %w", err)
+	}
+
+	// Write data
+	for _, item := range preferences.List {
+		record := []string{
+			fmt.Sprint(item.Result),
+			fmt.Sprint(item.ID),
+			item.Name,
+			fmt.Sprint(item.GID),
+			item.Group,
+			fmt.Sprint(item.Value),
+			fmt.Sprintf("%.2f", item.Share),
+		}
+		if err := writer.Write(record); err != nil {
+			return fmt.Errorf("writing record to CSV: %w", err)
+		}
+	}
 
 	return nil
 }

@@ -18,20 +18,19 @@ func NewDataService(client *api.Client) *DataService {
 	return &DataService{client: client}
 }
 
-// GetData retrieves data from FlixPatrol API based on provided parameters
-func (s *DataService) GetData(params url.Values) ([]models.DataResponse, error) {
+func (s *DataService) GetData(params url.Values) (*models.ApiResponse, error) {
 	endpoint, err := s.buildDataURL(params)
 	if err != nil {
 		return nil, fmt.Errorf("building URL: %w", err)
 	}
 
-	var data []models.DataResponse
-	err = s.client.Get(endpoint, &data)
+	var response models.ApiResponse
+	err = s.client.Get(endpoint, &response)
 	if err != nil {
 		return nil, fmt.Errorf("getting data: %w", err)
 	}
 
-	return data, nil
+	return &response, nil
 }
 
 // buildDataURL constructs the URL for the data endpoint

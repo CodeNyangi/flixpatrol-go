@@ -1,11 +1,45 @@
 package models
 
+type ApiResponse struct {
+	ApiLimit  int            `json:"api_limit"`
+	ApiCount  int            `json:"api_count"`
+	Page      int            `json:"page"`
+	Results   int            `json:"results"`
+	Links     Links          `json:"_links"`
+	List      []DataResponse `json:"list"`
+	Set       int            `json:"set"`
+	Streaming int            `json:"streaming"`
+	Region    int            `json:"region"`
+	Date      string         `json:"date"`
+	Type      int            `json:"type"`
+	Country   int            `json:"country"`
+	Year      int            `json:"year"`
+	Genre     int            `json:"genre"`
+	Company   int            `json:"company"`
+	Filter    interface{}    `json:"filter"`
+	Query     interface{}    `json:"query"`
+	Grouping  int            `json:"grouping"`
+	Top25     string         `json:"top25"`
+	Updated   interface{}    `json:"updated"`
+}
+
+type Links struct {
+	Self  Link `json:"self"`
+	First Link `json:"first"`
+	Last  Link `json:"last"`
+	Next  Link `json:"next"`
+}
+
+type Link struct {
+	Href string `json:"href"`
+}
+
 type DataResponse struct {
 	Result      int    `json:"result"`
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	URL         string `json:"url"`
-	Premiere    int    `json:"premiere"`
+	Premiere    string `json:"premiere"` // 날짜가 문자열로 제공됨
 	TypeID      int    `json:"type_id"`
 	Type        string `json:"type"`
 	CountryID   int    `json:"country_id"`
@@ -14,7 +48,7 @@ type DataResponse struct {
 	Company     string `json:"company"`
 	Key         string `json:"key"`
 	Note        string `json:"note"`
-	Region      string `json:"region"`
+	Region      int    `json:"region"` // 지역은 정수로 제공됨
 	Ranking     int    `json:"ranking"`
 	RankingLast int    `json:"ranking_last"`
 	Value       int    `json:"value"`
@@ -24,85 +58,27 @@ type DataResponse struct {
 	Days        int    `json:"days"`
 }
 
-type DemographicsResponse struct {
-	Result      int     `json:"result"`
-	MovieID     *int    `json:"movie_id"`
-	Movie       *string `json:"movie"`
-	FranchiseID *int    `json:"franchise_id"`
-	Franchise   *string `json:"franchise"`
-	URL         string  `json:"url"`
-	CountryID   int     `json:"country_id"`
-	Country     string  `json:"country"`
-	Generation  int     `json:"generation"`
-	Gender      int     `json:"gender"`
-	Value       int     `json:"value"`
-	Share       float64 `json:"share"`
-}
-
+// PreferencesResponse represents the response structure for preferences API requests
 type PreferencesResponse struct {
-	Sum    int `json:"sum"`
-	Result []struct {
-		ID    int     `json:"id"`
-		Name  string  `json:"name"`
-		GID   int     `json:"gid"`
-		Group string  `json:"group"`
-		Value int     `json:"value"`
-		Share float64 `json:"share"`
-	} `json:"result"`
+	ApiLimit  int              `json:"api_limit"`
+	ApiCount  int              `json:"api_count"`
+	Sum       int              `json:"sum"`
+	Page      int              `json:"page"`
+	Results   int              `json:"results"`
+	List      []PreferenceItem `json:"list"`
+	Set       int              `json:"set"`
+	Streaming int              `json:"streaming"`
+	Region    int              `json:"region"`
+	Date      string           `json:"date"`
 }
 
-type SearchResponse struct {
-	Result     int    `json:"result"`
-	ID         int    `json:"id"`
-	IMDB       string `json:"imdb"`
-	TMDB       int    `json:"tmdb"`
-	Name       string `json:"name"`
-	URL        string `json:"url"`
-	API        string `json:"api"`
-	Premiere   string `json:"premiere"`
-	Popularity int    `json:"popularity"`
-}
-
-type TitleResponse struct {
-	ID        int    `json:"id"`
-	IMDB      string `json:"imdb"`
-	TMDB      int    `json:"tmdb"`
-	Name      string `json:"name"`
-	URL       string `json:"url"`
-	Premiere  string `json:"premiere"`
-	TypeID    int    `json:"type_id"`
-	Type      string `json:"type"`
-	CountryID int    `json:"country_id"`
-	Country   string `json:"country"`
-	GenreID   int    `json:"genre_id"`
-	Genre     string `json:"genre"`
-	CompanyID int    `json:"company_id"`
-	Company   string `json:"company"`
-	Result    []struct {
-		Key         string `json:"key"`
-		Streaming   int    `json:"streaming"`
-		Region      int    `json:"region"`
-		From        string `json:"from"`
-		To          string `json:"to"`
-		Ranking     int    `json:"ranking"`
-		RankingLast int    `json:"ranking_last"`
-		Value       int    `json:"value"`
-		ValueLast   int    `json:"value_last"`
-		ValueTotal  int    `json:"value_total"`
-		Countries   int    `json:"countries"`
-		Days        int    `json:"days"`
-	} `json:"result"`
-}
-
-type TrendingResponse struct {
-	Result      int     `json:"result"`
-	MovieID     *int    `json:"movie_id"`
-	Movie       *string `json:"movie"`
-	FranchiseID *int    `json:"franchise_id"`
-	Franchise   *string `json:"franchise"`
-	URL         string  `json:"url"`
-	Region      int     `json:"region"`
-	Value       int     `json:"value"`
-	From        string  `json:"from"`
-	To          string  `json:"to"`
+// PreferenceItem represents each item in the preferences response list
+type PreferenceItem struct {
+	Result int     `json:"result"`
+	ID     int     `json:"id"`
+	Name   string  `json:"name"`
+	GID    *int    `json:"gid"` // Nullable int, can be null
+	Group  string  `json:"group"`
+	Value  int     `json:"value"`
+	Share  float64 `json:"share"`
 }
